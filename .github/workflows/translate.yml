@@ -1,4 +1,4 @@
-name: Maths By DC - One Page Translator
+name: One PDF Translator
 
 on:
   workflow_dispatch:
@@ -9,59 +9,32 @@ permissions:
 jobs:
   translate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install Requirements
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - run: pip install -r requirements.txt
 
-      - name: Create Folders
-        run: |
-          mkdir -p input
-          mkdir -p output
-          mkdir -p output/text
-
-      - name: Verify Input
-        run: |
-          ls input | head
-
-      - name: Translate ONE PDF
+      - name: Run Translator
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python src/main.py
+
+      - name: Commit Output
         run: |
-          python src/main.py
+          git config user.name github-actions
+          git config user.email actions@github.com
 
-      - name: Commit Progress
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          git add output/
 
-          git add output/*.pdf output/text/*.txt
-
-          if git diff --cached --quiet; then
-            echo "No changes"
-          else
-            git commit -m "Translated next page"
+          if ! git diff --cached --quiet; then
+            git commit -m "Translated next PDF"
             git pull --rebase origin main || true
             git push
           fi
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: translated-page
-          path: |
-            output/*.pdf
-            output/text/*.txt
