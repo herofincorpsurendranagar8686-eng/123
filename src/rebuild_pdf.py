@@ -1,26 +1,59 @@
-from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.colors import HexColor
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import os
 
-FONT = "Helvetica"
-
 if os.path.exists("fonts/NotoSansGujarati-Regular.ttf"):
-    pdfmetrics.registerFont(
-        TTFont("Gujarati", "fonts/NotoSansGujarati-Regular.ttf")
-    )
-    FONT = "Gujarati"
+    pdfmetrics.registerFont(TTFont("Gujarati","fonts/NotoSansGujarati-Regular.ttf"))
+    FONT="Gujarati"
+else:
+    FONT="Helvetica"
 
-style = getSampleStyleSheet()["BodyText"]
-style.fontName = FONT
-style.leading = 18
+styles=getSampleStyleSheet()
+title=styles["Heading1"]
+title.fontName=FONT
+title.textColor=HexColor("#1D4ED8")
 
-def build_pdf(text, output_file):
-    doc = SimpleDocTemplate(output_file)
+body=styles["BodyText"]
+body.fontName=FONT
+body.leading=18
 
-    story = [
-        Paragraph(text.replace("\n", "<br/>"), style)
-    ]
+def build_pdf(text, output_file, page_no):
+    doc=SimpleDocTemplate(output_file)
+
+    story=[]
+
+    story.append(Paragraph(
+        '<font color="#FFFFFF"><b>MATHS BY DC</b></font>',
+        styles["Title"]
+    ))
+
+    story.append(Spacer(1,10))
+
+    story.append(Paragraph(
+        f'<font color="#1D4ED8"><b>ગુજરાતી આવૃત્તિ</b></font>',
+        title
+    ))
+
+    story.append(Paragraph(
+        f"<b>Page {page_no}</b>",
+        body
+    ))
+
+    story.append(Spacer(1,12))
+
+    story.append(Paragraph(
+        text.replace("\n","<br/>"),
+        body
+    ))
+
+    story.append(Spacer(1,20))
+
+    story.append(Paragraph(
+        '<font color="#2563EB"><b>www.mathsbydc.in</b></font>',
+        body
+    ))
 
     doc.build(story)
