@@ -1,33 +1,26 @@
 from pathlib import Path
-from gemini_translate import translate_page
 from rebuild_pdf import build_pdf
 
-INPUT = Path("input")
-OUTPUT = Path("output")
+INPUT=Path("input")
+OUTPUT=Path("output")
 
 OUTPUT.mkdir(exist_ok=True)
 
-files = sorted(INPUT.glob("source-*.pdf"))
+files=sorted(INPUT.glob("source-*.txt"))
 
-for pdf in files:
+for txt in files:
 
-    out_pdf = OUTPUT / pdf.name
-    txt = OUTPUT / pdf.with_suffix(".txt").name
+    pdf=OUTPUT/f"{txt.stem}.pdf"
 
-    if out_pdf.exists():
+    if pdf.exists():
         continue
 
-    print(f"Translating {pdf.name}")
+    text=txt.read_text(encoding="utf-8")
 
-    result = translate_page(str(pdf))
+    num=int(txt.stem.split("-")[1])
 
-    txt.write_text(result, encoding="utf-8")
+    build_pdf(text,str(pdf),num)
 
-    build_pdf(result, str(out_pdf))
+    print("Created",pdf.name)
 
-    print(f"Saved {out_pdf.name}")
-
-    # ONLY ONE PDF PER RUN
     break
-
-print("Done")
